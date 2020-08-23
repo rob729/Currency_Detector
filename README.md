@@ -1,0 +1,2 @@
+# Currency_Detector
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/31237d52c3d947d684e7576a22b59885)](https://app.codacy.com/manual/rob729/Currency_Detector?utm_source=github.com&utm_medium=referral&utm_content=rob729/Currency_Detector&utm_campaign=Badge_Grade_Dashboard)
