@@ -2,16 +2,16 @@ package com.example.robin.currencydetector
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
-import com.example.robin.currencydetector.Keys.DIM_BATCH_SIZE
-import com.example.robin.currencydetector.Keys.DIM_IMG_SIZE_X
-import com.example.robin.currencydetector.Keys.DIM_IMG_SIZE_Y
-import com.example.robin.currencydetector.Keys.DIM_PIXEL_SIZE
-import com.example.robin.currencydetector.Keys.IMAGE_MEAN
-import com.example.robin.currencydetector.Keys.IMAGE_STD
-import com.example.robin.currencydetector.Keys.INPUT_SIZE
-import com.example.robin.currencydetector.Keys.LABEL_PATH
-import com.example.robin.currencydetector.Keys.MAX_RESULTS
-import com.example.robin.currencydetector.Keys.MODEL_PATH
+import com.example.robin.currencydetector.util.Keys.DIM_BATCH_SIZE
+import com.example.robin.currencydetector.util.Keys.DIM_IMG_SIZE_X
+import com.example.robin.currencydetector.util.Keys.DIM_IMG_SIZE_Y
+import com.example.robin.currencydetector.util.Keys.DIM_PIXEL_SIZE
+import com.example.robin.currencydetector.util.Keys.IMAGE_MEAN
+import com.example.robin.currencydetector.util.Keys.IMAGE_STD
+import com.example.robin.currencydetector.util.Keys.INPUT_SIZE
+import com.example.robin.currencydetector.util.Keys.LABEL_PATH
+import com.example.robin.currencydetector.util.Keys.MAX_RESULTS
+import com.example.robin.currencydetector.util.Keys.MODEL_PATH
 import io.reactivex.Single
 import org.tensorflow.lite.Interpreter
 import java.io.BufferedReader
@@ -26,7 +26,6 @@ import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
 import kotlin.math.min
-
 
 
 class ImageClassifier constructor(assetManager: AssetManager) {
@@ -48,7 +47,6 @@ class ImageClassifier constructor(assetManager: AssetManager) {
         } catch (e: IOException) {
             throw RuntimeException("Problem reading label file!", e)
         }
-       // labelProb = Array(1) { ByteArray(labels.size) }
 
         labelProb = Array(1) { FloatArray(labels.size) }
 
@@ -95,7 +93,8 @@ class ImageClassifier constructor(assetManager: AssetManager) {
                     (rhs.confidence!!).compareTo(lhs.confidence!!)
                 })
             for (i in labels.indices) {
-                pq.add(Result("" + i, if (labels.size > i) labels[i] else "unknown", labelProb[0][i].toFloat(), null))
+                pq.add(Result("" + i, if (labels.size > i) labels[i] else "unknown",
+                    labelProb[0][i], null))
             }
             val recognitions = ArrayList<Result>()
             val recognitionsSize = min(pq.size, MAX_RESULTS)
