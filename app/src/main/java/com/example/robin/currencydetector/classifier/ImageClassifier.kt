@@ -1,7 +1,8 @@
-package com.example.robin.currencydetector
+package com.example.robin.currencydetector.classifier
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
+import com.example.robin.currencydetector.data.Result
 import com.example.robin.currencydetector.util.Keys.DIM_BATCH_SIZE
 import com.example.robin.currencydetector.util.Keys.DIM_IMG_SIZE_X
 import com.example.robin.currencydetector.util.Keys.DIM_IMG_SIZE_Y
@@ -93,8 +94,12 @@ class ImageClassifier constructor(assetManager: AssetManager) {
                     (rhs.confidence!!).compareTo(lhs.confidence!!)
                 })
             for (i in labels.indices) {
-                pq.add(Result("" + i, if (labels.size > i) labels[i] else "unknown",
-                    labelProb[0][i], null))
+                pq.add(
+                    Result(
+                        "" + i, if (labels.size > i) labels[i] else "unknown",
+                        labelProb[0][i], null
+                    )
+                )
             }
             val recognitions = ArrayList<Result>()
             val recognitionsSize = min(pq.size, MAX_RESULTS)

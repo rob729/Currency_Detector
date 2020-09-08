@@ -1,4 +1,4 @@
-package com.example.robin.currencydetector
+package com.example.robin.currencydetector.activity
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity

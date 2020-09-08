@@ -1,4 +1,4 @@
-package com.example.robin.currencydetector
+package com.example.robin.currencydetector.data
 
 import android.graphics.RectF
 

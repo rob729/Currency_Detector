@@ -3,4 +3,12 @@
     <string name="starting">Starting…</string>
 
     <string name="picture">Choose a picture:</string>
+    <string name="hundred">₹ 100</string>
+    <string name="ten">₹ 10</string>
+    <string name="twenty">₹ 20</string>
+    <string name="fifty">₹ 50</string>
+    <string name="five_hundred">₹ 500</string>
+    <string name="two_thousand">₹ 2000</string>
+    <string name="two_hundred">₹ 200</string>
+    <string name="try_again">Please Try Again</string>
 </resources>

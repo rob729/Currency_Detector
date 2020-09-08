@@ -1,4 +1,4 @@
-package com.example.robin.currencydetector
+package com.example.robin.currencydetector.util
 
 object Keys {
     //    const val MODEL_PATH = "tensorflow_inception_graph.pb"

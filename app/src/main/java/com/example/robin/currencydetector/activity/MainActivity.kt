@@ -1,7 +1,6 @@
-package com.example.robin.currencydetector
+package com.example.robin.currencydetector.activity
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,8 +12,12 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import com.example.robin.currencydetector.classifier.ImageClassifier
+import com.example.robin.currencydetector.R
 import com.example.robin.currencydetector.databinding.ActivityMainBinding
+import com.example.robin.currencydetector.util.Keys
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -22,17 +25,21 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var sheetBehavior: BottomSheetBehavior<*>
     private lateinit var classifier: ImageClassifier
+    private val compositeDisposable = CompositeDisposable()
     var processing: Boolean = false
     lateinit var mp: MediaPlayer
     val binding: ActivityMainBinding by lazy {
-        DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        DataBindingUtil.setContentView<ActivityMainBinding>(this,
+            R.layout.activity_main
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         checkPermission()
-        classifier = ImageClassifier(assets)
+        classifier =
+            ImageClassifier(assets)
 
         binding.btnRetry.setOnClickListener {
             binding.codeData.text = " "
@@ -62,24 +69,20 @@ class MainActivity : AppCompatActivity() {
         })
 
         binding.fabTakePhoto.setOnClickListener {
-            checkPermission()
-            binding.cameraView.captureImage { cameraKitView, bytes ->
-                if (!processing) {
-                    this.runOnUiThread {
-                        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        getCurrencyDetails(bitmap)
-                        showPreview()
-                        imagePreview.setImageBitmap(bitmap)
+            if(checkPermission()){
+                binding.cameraView.captureImage { cameraKitView, bytes ->
+                    if (!processing) {
+                        this.runOnUiThread {
+                            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                            getCurrencyDetails(bitmap)
+                            showPreview()
+                            imagePreview.setImageBitmap(bitmap)
+                        }
                     }
                 }
+            } else {
+                checkPermission()
             }
-//            binding.cameraView.captureImage { cameraKitImage ->
-//                this.runOnUiThread {
-//                    getCurrencyDetails(cameraKitImage.bitmap)
-//                    showPreview()
-//                    imagePreview.setImageBitmap(cameraKitImage.bitmap)
-//                }
-//            }
         }
 
     }
@@ -95,67 +98,84 @@ class MainActivity : AppCompatActivity() {
         sheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
-    private fun checkPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+    private fun checkPermission(): Boolean {
+        return if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 0)
-            binding.cameraView
+            false
+        } else {
+            true
         }
     }
 
-    @SuppressLint("CheckResult")
     private fun getCurrencyDetails(bitmap: Bitmap) {
+        progressBar.visibility = View.VISIBLE
         processing = true
-        val photobitmap = Bitmap.createScaledBitmap(bitmap, Keys.INPUT_SIZE, Keys.INPUT_SIZE, false)
-        classifier.recognizeImage(photobitmap).subscribeBy(
-            onSuccess = {
-                if (it[0].title.equals("100_new_back") || it[0].title.equals("100_new_front") || it[0].title.equals("100_old_back") || it[0].title.equals(
-                        "100_old_back"
-                    )
-                ) {
-                    binding.codeData.text = getString(R.string.hundred)
-                    mp = MediaPlayer.create(this, R.raw.a100)
-                    mp.start()
-                } else if (it[0].title.equals("10_new_back") || it[0].title.equals("10_new_front") || it[0].title.equals(
-                        "10_old_back"
-                    ) || it[0].title.equals("10_old_back")
-                ) {
-                    binding.codeData.text = getString(R.string.ten)
-                    mp = MediaPlayer.create(this, R.raw.a10)
-                    mp.start()
-                } else if (it[0].title.equals("20_new_back") || it[0].title.equals("20_new_front") || it[0].title.equals(
-                        "20_old_back"
-                    ) || it[0].title.equals("20_old_back")
-                ) {
-                    binding.codeData.text = getString(R.string.twenty)
-                    mp = MediaPlayer.create(this, R.raw.a20)
-                    mp.start()
-                } else if (it[0].title.equals("50_new_back") || it[0].title.equals("50_new_front") || it[0].title.equals(
-                        "50_old_back"
-                    ) || it[0].title.equals("50_old_back")
-                ) {
-                    binding.codeData.text = getString(R.string.fifty)
-                    mp = MediaPlayer.create(this, R.raw.a50)
-                    mp.start()
-                } else if (it[0].title.equals("200_back") || it[0].title.equals("200_front")) {
-                    binding.codeData.text = getString(R.string.two_hundred)
-                    mp = MediaPlayer.create(this, R.raw.a200)
-                    mp.start()
-                } else if (it[0].title.equals("500_new_back") || it[0].title.equals("500_new_front")) {
-                    binding.codeData.text = getString(R.string.five_hundred)
-                    mp = MediaPlayer.create(this, R.raw.a500)
-                    mp.start()
-                } else if (it[0].title.equals("2000_front") || it[0].title.equals("2000_back")) {
-                    binding.codeData.text = getString(R.string.two_thousand)
-                    mp = MediaPlayer.create(this, R.raw.a2000)
-                    mp.start()
-                } else{
-                    binding.codeData.text = getString(R.string.try_again)
+        val photoBitmap = Bitmap.createScaledBitmap(bitmap, Keys.INPUT_SIZE, Keys.INPUT_SIZE, false)
+        compositeDisposable.add(
+            classifier.recognizeImage(photoBitmap).subscribeBy(
+                onSuccess = {
+                    when(it[0].title){
+                        "10_new_back" , "10_new_front" , "10_old_back" , "10_old_front" -> {
+                            binding.codeData.text = getString(R.string.ten)
+                            mp = MediaPlayer.create(this,
+                                R.raw.a10
+                            )
+                            mp.start()
+                        }
+                        "20_new_back" , "20_new_front" , "20_old_back" , "20_old_front" -> {
+                            binding.codeData.text = getString(R.string.twenty)
+                            mp = MediaPlayer.create(this,
+                                R.raw.a20
+                            )
+                            mp.start()
+                        }
+                        "50_new_back" , "50_new_front" , "50_old_back" , "50_old_front" -> {
+                            binding.codeData.text = getString(R.string.fifty)
+                            mp = MediaPlayer.create(this,
+                                R.raw.a50
+                            )
+                            mp.start()
+                        }
+                        "100_new_back" , "100_new_front" , "100_old_back" , "100_old_front" -> {
+                            binding.codeData.text = getString(R.string.hundred)
+                            mp = MediaPlayer.create(this,
+                                R.raw.a100
+                            )
+                            mp.start()
+                        }
+                        "200_new_back" , "200_new_front" -> {
+                            binding.codeData.text = getString(R.string.two_hundred)
+                            mp = MediaPlayer.create(this,
+                                R.raw.a200
+                            )
+                            mp.start()
+                        }
+                        "500_new_back" , "500_new_front" -> {
+                            binding.codeData.text = getString(R.string.five_hundred)
+                            mp = MediaPlayer.create(this,
+                                R.raw.a500
+                            )
+                            mp.start()
+                        }
+                        "2000_new_back" , "2000_new_front"  -> {
+                            binding.codeData.text = getString(R.string.two_thousand)
+                            mp = MediaPlayer.create(this,
+                                R.raw.a2000
+                            )
+                            mp.start()
+                        }
+                        else -> {
+                            binding.codeData.text = getString(R.string.try_again)
+                        }
+                    }
+                    processing = false
+                    progressBar.visibility = View.GONE
+                    binding.fabProgressCircle.hide()
+                    sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
-                processing = false
-                binding.fabProgressCircle.hide()
-                sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-            }
+            )
         )
+
     }
 
     override fun onStart() {
